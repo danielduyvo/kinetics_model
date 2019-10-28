@@ -6,6 +6,7 @@
 // d[A_i]/dt = + k_(i-1)*[M]*[A_(i-1)] + k_(i)m*[A_(i+1)] - k_(i-1)m*[A_i] - k_(i)*[M]*[A_i]
 
 const fs = require('fs');
+const input = require('./inputData.js');
 
 /**
  * A function that takes in parameters and generates modeled data of absorbance during an aggregation
@@ -15,7 +16,7 @@ const fs = require('fs');
  * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
  * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
  */
-const generateModeledData = (initialConditions, n, forward, backward, metaparameters) => {
+const generateModeledConcentrations = (initialConditions, n, forward, backward, metaparameters) => {
     // Check if datasets are valid
     if (initialConditions.length * 2 != forward.length + backward.length + 2) throw new Error("Datasets are of wrong length");
 
@@ -103,19 +104,75 @@ const generateModeledData = (initialConditions, n, forward, backward, metaparame
             conditions[i] = results[last_set][i];
         }
         step += step_size;
+        
     }
 
     return results;
 }
 
-let test = generateModeledData([100, 0, 0, 0], 1, [0.1, 0.001, 0.001], [0.01, 0.0001, 0.001], {step_size: .1, time_length: 1000});
+const generateConcentrationsGraph = (initialConditions, n, forward, backward, metaparameters) => {
+    let concentrations = generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters);
+    let data = '';
+    for (let i = 0; i < concentrations.length; i++) {
+        data += concentrations[i].join(',') + '\n';
+    }
+    let graphs = 'plot(times, data[,1], col=hsv(0, 1, 1), ylim=c(0, maximum), xlab="Time (s)", ylab="Molarity (M)")\n';
+    let legend_0 = `legend("top", legend = c("M"`;
+    let legend_1 = `col=c(hsv(0, 1, 1)`
+    let legend_2 = `pch=c(1`
+    for (let i = 1, total = concentrations[0].length; i < total; i++) {
+        graphs += `points(times, data[,${i+1}], col=hsv(${i/total}, 1, 1))` + '\n';
+        legend_0 += `,"A_${i}"`;
+        legend_1 += `,hsv(${i/total}, 1, 1)`;
+        legend_2 += `,1`
+    }
+    let legend = legend_0 + '), ' + legend_1 + '), ' + legend_2 + '))\n';
+
+    let script = `
+#load file
+data = read.csv(text="${data}")
+times <- seq(from=0, to=${(concentrations.length - 2)* metaparameters.step_size}, by=${metaparameters.step_size})
+
+maximum <- max(data)
+
+png(filename = "concentrations.png");
+${graphs}
+${legend}
+dev.off()
+`
+
+    fs.writeFile('concentrations.R', script, (err) => {
+        if (err) throw err;
+        console.log('concentration R script created');
+    })
+}
+
+
+
+
+
+
+// Data output
+let model = generateModeledConcentrations(
+    input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
+        step_size: input.stepSize,
+        time_length: input.timeLength
+    }
+);
 
 // Print out output
 let csv = '';
-for (let i = 0; i < test.length; i++) {
-    csv += test[i].join(',') + '\n';
+for (let i = 0; i < model.length; i++) {
+    csv += model[i].join(',') + '\n';
 }
-fs.writeFile('data.csv', csv, (err) => {
+fs.writeFile('concentrations.csv', csv, (err) => {
     if (err) throw err;
-    console.log('data saved');
-})
+    console.log('concentration');
+});
+
+generateConcentrationsGraph(
+    input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
+        step_size: input.stepSize,
+        time_length: input.timeLength
+    }
+);
