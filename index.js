@@ -7,9 +7,10 @@
 
 const fs = require('fs');
 const input = require('./inputData.js');
+const { spawn } = require('child_process');
 
 /**
- * A function that takes in parameters and generates modeled data of absorbance during an aggregation
+ * Takes in parameters and generates modeled data of concentrations during an aggregation
  * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
  * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
  * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
@@ -110,6 +111,35 @@ const generateModeledConcentrations = (initialConditions, n, forward, backward, 
     return results;
 }
 
+/**
+ * Takes in parameters and writes the generated modeled data of concentrations during an aggregation into a 'concentrations.csv' file
+ * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
+ * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
+ * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
+ * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
+ * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
+ */
+const printConcentrationsCSV = (initialConditions, n, forward, backward, metaparameters) => {
+    let model = generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters);
+    // Print out output
+    let csv = '';
+    for (let i = 0; i < model.length; i++) {
+        csv += model[i].join(',') + '\n';
+    }
+    fs.writeFile('concentrations.csv', csv, (err) => {
+        if (err) throw err;
+        console.log('printConcentrationsCSV:', 'Concentration data written to concentrations.csv');
+    });
+}
+
+/**
+ * Takes in parameters and creates a graph of the concentrations into 'concentrations.png' from generated modeled data of absorbance during an aggregation
+ * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
+ * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
+ * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
+ * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
+ * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
+ */
 const generateConcentrationsGraph = (initialConditions, n, forward, backward, metaparameters) => {
     let concentrations = generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters);
     let data = '';
@@ -128,8 +158,8 @@ const generateConcentrationsGraph = (initialConditions, n, forward, backward, me
     }
     let legend = legend_0 + '), ' + legend_1 + '), ' + legend_2 + '))\n';
 
-    let script = `
-#load file
+    let script =
+`#load file
 data = read.csv(text="${data}")
 times <- seq(from=0, to=${(concentrations.length - 2)* metaparameters.step_size}, by=${metaparameters.step_size})
 
@@ -143,36 +173,146 @@ dev.off()
 
     fs.writeFile('concentrations.R', script, (err) => {
         if (err) throw err;
-        console.log('concentration R script created');
+        else {
+            console.log('generateConcentrationsGraph:', 'concentrations.R script created, attempting to run script');
+            const run_script = spawn('Rscript', ['concentrations.R']);
+
+            run_script.stdout.on('data', (data) => {
+                console.log(`${data}`);
+            });
+              
+            run_script.stderr.on('data', (data) => {
+                console.error(`child stderr:\n${data}`);
+            });
+
+            run_script.on('exit', function (code, signal) {
+                console.log(`"Rscript concentrations.R" exited with code ${code} and signal ${signal}`);
+            });
+        }
+    })
+}
+
+/**
+ * Takes in parameters and generates modeled data of absorbance during an aggregation
+ * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
+ * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
+ * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
+ * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
+ * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
+ * @param {Array} absorptivity is an array containing the absorptivities/molar attenuation coefficient (epsilon) of each species, ordered in increasing order of mass
+ */
+const generateModeledBeers = (initialConditions, n, forward, backward, metaparameters, absorptivity) => {
+    let concentrations = generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters);
+    let beers_data = [];
+    for (let i = 0; i < concentrations.length; i++) {
+        beers_data[i] = 0;
+        for (let j = 0, species = concentrations[i].length; j < species; j++) {
+            beers_data[i] += absorptivity[j] * concentrations[i][j];
+        }
+    }
+    return beers_data;
+}
+
+/**
+ * Takes in parameters and writes to "beers.csv" the generated modeled data of absorbance during an aggregation
+ * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
+ * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
+ * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
+ * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
+ * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
+ * @param {Array} absorptivity is an array containing the absorptivities/molar attenuation coefficient (epsilon) of each species, ordered in increasing order of mass
+ */
+const printBeersCSV = (initialConditions, n, forward, backward, metaparameters, absorptivity) => {
+    let absorbance = generateModeledBeers(initialConditions, n, forward, backward, metaparameters, absorptivity);
+    // Print out output
+    let csv = '';
+    for (let i = 0; i < absorbance.length; i++) {
+        csv += absorbance[i] + '\n';
+    }
+    fs.writeFile('beers.csv', csv, (err) => {
+        if (err) throw err;
+        console.log('printBeersCSV:', 'Absorbance data written to beers.csv');
+    });
+}
+
+/**
+ * Takes in parameters and draws a graph into "beers.png" from generated modeled data of absorbance during an aggregation
+ * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
+ * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
+ * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
+ * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
+ * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
+ * @param {Array} absorptivity is an array containing the absorptivities/molar attenuation coefficient (epsilon) of each species, ordered in increasing order of mass
+ */
+const generateBeersGraph = (initialConditions, n, forward, backward, metaparameters, absorptivity) => {
+    let absorbance = generateModeledBeers(initialConditions, n, forward, backward, metaparameters, absorptivity);
+    let data = '';
+    for (let i = 0; i < absorbance.length; i++) {
+        data += absorbance[i] + '\n';
+    }
+    data = data.substring(0, data.length - 1);
+
+    let graphs = 'plot(times, data[,1], col=hsv(0, 1, 1), ylim=c(0, maximum), xlab="Time (s)", ylab="Absorbance (AU)")\n';
+
+    let script =
+`#load file
+data = read.csv(text="${data}")
+times <- seq(from=0, to=${(absorbance.length - 2)* metaparameters.step_size}, by=${metaparameters.step_size})
+
+maximum <- max(data)
+
+png(filename = "beers.png");
+${graphs}
+dev.off()
+`
+
+    fs.writeFile('beers.R', script, (err) => {
+        if (err) throw err;
+        else {
+            console.log('generateBeersGraph:', 'beers.R script created, attempting to run script');
+            const run_script = spawn('Rscript', ['beers.R']);
+
+            run_script.stdout.on('data', (data) => {
+                console.log(`${data}`);
+            });
+              
+            run_script.stderr.on('data', (data) => {
+                console.error(`child stderr:\n${data}`);
+            });
+
+            run_script.on('exit', function (code, signal) {
+                console.log(`"Rscript beers.R" exited with code ${code} and signal ${signal}`);
+            });
+        }
     })
 }
 
 
-
-
-
-
 // Data output
-let model = generateModeledConcentrations(
+printConcentrationsCSV(
     input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
         step_size: input.stepSize,
         time_length: input.timeLength
     }
 );
 
-// Print out output
-let csv = '';
-for (let i = 0; i < model.length; i++) {
-    csv += model[i].join(',') + '\n';
-}
-fs.writeFile('concentrations.csv', csv, (err) => {
-    if (err) throw err;
-    console.log('concentration');
-});
-
 generateConcentrationsGraph(
     input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
         step_size: input.stepSize,
         time_length: input.timeLength
     }
+);
+
+printBeersCSV(
+    input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
+        step_size: input.stepSize,
+        time_length: input.timeLength
+    }, input.absorptivity
+);
+
+generateBeersGraph(
+    input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
+        step_size: input.stepSize,
+        time_length: input.timeLength
+    }, input.absorptivity
 );
