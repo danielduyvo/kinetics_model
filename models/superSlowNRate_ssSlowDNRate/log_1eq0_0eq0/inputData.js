@@ -7,7 +7,7 @@ module.exports = {
         1, .01, 1
     ],
     backwardRates: [ // The backward rates for the reactions, starting with the smallest aggregate dissociation
-        1, .01, .001
+        1, .001, 1
     ],
     stepSize: 0.01, // The step size that the approximation will use
     timeLength: 100, // The time length the approximation will run for
