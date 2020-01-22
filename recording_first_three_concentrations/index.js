@@ -1,4 +1,4 @@
-const fs = require('fs').promises; // for writing to file
+const fs = require('fs'); // for writing to file
 const input = require('./inputData.js'); // parameters
 const process = require("process") // for making the progress bar
 const rdl = require("readline") // for making the progress bar
@@ -12,12 +12,12 @@ const rdl = require("readline") // for making the progress bar
  * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
  * @param {Integer} nm is the mechanism representing how many monomers are involved in the slow step of nucleation
  */
-const generateModeledConcentrations = async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
+const generateModeledConcentrations = (initialConditions, n, forward, backward, metaparameters, nm = n) => {
     // Check if model parameters are valid
     if (forward.length != 3 || backward.length != 3) throw new Error("Incorrect number of rates")
 
     // Check if metaparameters are valid
-    let { step_size, time_length, points, outputFile } = metaparameters;
+    let { step_size, time_length, points } = metaparameters;
     if (step_size <= 0) throw new Error("Step size must be a positive number");
     if (time_length < step_size) throw new Error("Time length must be longer than step size");
 
@@ -137,9 +137,9 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
     let progressCounter = 0;
     // Picking out the intermediate points
     let pointCounter = 0;
+    let concentrationPoints = [];
     // Generate data
     let step = 0;
-    await fs.writeFile(outputFile, [step, conditions[0], conditions[1], conditions[2]]);
     while (step < time_length) {
         diffEqs();
         if (conditions[0] == next[0] && conditions[1] == next[1]) break;
@@ -157,15 +157,15 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
         }
         pointCounter++;
         if (pointCounter > time_length / points / step_size) { // add point to array
-            await fs.appendFile(outputFile, '\n' + [step, conditions[0], conditions[1], conditions[2]]);
+            concentrationPoints.push([step, conditions[0], conditions[1], conditions[2]]);
             pointCounter = 0;
         }
         step += step_size;
     }
-    await fs.appendFile(outputFile, '\n' + [step, conditions[0], conditions[1], conditions[2]]); // add final concentrations
+    concentrationPoints.push([step, conditions[0], conditions[1], conditions[2]]); // add final concentrations
     rdl.moveCursor(process.stdout, -21, 1); // Move cursor to next line
     process.stdout.write("\x1B[?25h")
-    return;
+    return concentrationPoints;
 }
 
 // Data output
@@ -173,14 +173,10 @@ let concentrations = generateModeledConcentrations(
     input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
         step_size: input.stepSize,
         time_length: input.timeLength,
-        points: input.points,
-        outputFile: input.outputFile
+        points: input.points
     }
 );
 
-// (async ()=>{
-//     await fs.writeFile('output.txt', concentrations[0]);
-//     for (let i = 1; i < concentrations.length; i++) {
-//         await fs.appendFile('output.txt', '\n' + concentrations[i]);
-//     }
-// })()
+for (let i = 0; i < concentrations.length; i++) {
+    console.log(...concentrations[i]);
+}

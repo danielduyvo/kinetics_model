@@ -1,0 +1,31 @@
+initialConditions: [ // Initial concentrations go here, starting with monomers, and then aggregates in increasing mass order
+    0, 1, 0, 0
+],
+n: 6, // Number of monomers it takes to make the first aggregate
+forwardRates: [ // The forward rates for the reactions, starting the the monomer activation
+    0, 1.38, 1200 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
+],
+backwardRates: [ // The backward rates for the reactions
+    0, .00101, 302 // 1.01e-3 and 3.02e2 from Ghosh
+],
+At time =  10.000999999999896:
+  inactivated Monomer = 0
+  activated Monomer = 0.23769254700744688
+  aggregate_1 = 0.003762331480511026
+At time = 100.00000000011343:
+  inactivated Monomer = 0
+  activated Monomer = 0.23223520210746898
+  aggregate_1 = 0.006811301479545992
+At time = 500.0009999950884:
+  inactivated Monomer = 0
+  activated Monomer = 0.20995096752427275
+  aggregate_1 = 0.024321186384703358
+At time = 1000.000999983265:
+    inactivated Monomer = 0,
+    activated Monomer = 0.189278344250953
+    aggregate_1 = 0.04282696781720516
+1999.9999999596182 0 0.16680860878340226 0.055148051079757586
+4000.001000356158 0 0.14820853719961571 0.04242336422899535
+6000.002000763611 0 0.13484745690417332 0.02632983714332315
+8000.003001171065 0 0.12219307441298928 0.014725470795848851
+10000.000001578517 0 0.11084775479922926 0.007638028659900247
