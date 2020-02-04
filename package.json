@@ -1,12 +1,23 @@
 {
   "name": "kinetics_model",
   "version": "1.0.0",
-  "description": "",
+  "description": "A ODE model for aggregation of beta-amyloid.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Daniel Vo",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielduyvo/kinetics_model.git"
+  },
+  "bugs": {
+    "url": "https://github.com/danielduyvo/kinetics_model/issues"
+  },
+  "homepage": "https://github.com/danielduyvo/kinetics_model#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
