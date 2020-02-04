@@ -139,7 +139,7 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
     let pointCounter = 0;
     // Generate data
     let step = 0;
-    await fs.writeFile(outputFile, [step, conditions[0], conditions[1], conditions[2]]);
+    await fs.writeFile(outputFile, [step, ...conditions]);
     while (step < time_length) {
         diffEqs();
         if (conditions[0] == next[0] && conditions[1] == next[1]) break;
@@ -157,12 +157,12 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
         }
         pointCounter++;
         if (pointCounter > time_length / points / step_size) { // add point to array
-            await fs.appendFile(outputFile, '\n' + [step, conditions[0], conditions[1], conditions[2]]);
+            await fs.appendFile(outputFile, '\n' + [step, ...conditions]);
             pointCounter = 0;
         }
         step += step_size;
     }
-    await fs.appendFile(outputFile, '\n' + [step, conditions[0], conditions[1], conditions[2]]); // add final concentrations
+    await fs.appendFile(outputFile, '\n' + [step, ...conditions]); // add final concentrations
     rdl.moveCursor(process.stdout, -21, 1); // Move cursor to next line
     process.stdout.write("\x1B[?25h")
     return;
