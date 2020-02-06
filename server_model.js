@@ -169,14 +169,14 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
 }
 
 // Data output
-let concentrations = generateModeledConcentrations(
-    input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
-        step_size: input.stepSize,
-        time_length: input.timeLength,
-        points: input.points,
-        outputFile: input.outputFile
-    }
-);
+// let concentrations = generateModeledConcentrations(
+//     input.initialConditions, input.n, input.forwardRates, input.backwardRates, {
+//         step_size: input.stepSize,
+//         time_length: input.timeLength,
+//         points: input.points,
+//         outputFile: input.outputFile
+//     }
+// );
 
 // (async ()=>{
 //     await fs.writeFile('output.txt', concentrations[0]);
@@ -184,3 +184,13 @@ let concentrations = generateModeledConcentrations(
 //         await fs.appendFile('output.txt', '\n' + concentrations[i]);
 //     }
 // })()
+
+module.exports = {
+    test: () => {
+        console.log('test successful');
+    },
+    generate: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
+        await generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters, nm = n);
+        return;
+    }
+}
