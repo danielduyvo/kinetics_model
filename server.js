@@ -20,6 +20,7 @@ app.get('/test', (req, res) => {
 });
 
 app.post('/model', async (req, res) => {
+    console.log(JSON.stringify(req.body));
     await model.generate(req.body.initialConditions, req.body.n, req.body.forwardRates, req.body.backwardRates, req.body.metaparameters, req.body.nm);
     return res.download(__dirname + '/' + req.body.metaparameters.output_file);
     // Test request:

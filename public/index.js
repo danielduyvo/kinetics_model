@@ -20,11 +20,13 @@ let app = new Vue({
     },
     methods: {
         requestModel: async function () {
-            let { iM, aM, A1, A2, f1, f2, f3, b1, b2, b3, output_file, points, step_size, time_length, nm } = this;
+            let { iM, aM, A1, A2, n, nm, f1, f2, f3, b1, b2, b3, output_file, points, step_size, time_length } = this;
             iM = parseFloat(iM);
             aM = parseFloat(aM);
             A1 = parseFloat(A1);
             A2 = parseFloat(A2);
+            n = parseInt(n);
+            nm = parseFloat(nm);
             f1 = parseFloat(f1);
             f2 = parseFloat(f2);
             f3 = parseFloat(f3);
@@ -37,6 +39,7 @@ let app = new Vue({
             nm = parseFloat(nm);
             let body = {
                 initialConditions: [iM, aM, A1, A2],
+                n: n,
                 forwardRates: [f1, f2, f3],
                 backwardRates: [b1, b2, b3],
                 metaparameters: {

@@ -10,7 +10,7 @@ module.exports = {
         .0001, .00101, 302 // 1.01e-3 and 3.02e2 from Ghosh
     ],
     step_size: .001, // The step size that the approximation will use
-    time_length: 1000000, // The time length the approximation will run for
+    time_length: 10, // The time length the approximation will run for
     points: 1000,
     output_file: 'output.csv'
 }
