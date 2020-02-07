@@ -9,8 +9,8 @@ module.exports = {
     backwardRates: [ // The backward rates for the reactions
         .0001, .00101, 302 // 1.01e-3 and 3.02e2 from Ghosh
     ],
-    stepSize: .001, // The step size that the approximation will use
-    timeLength: 1000000, // The time length the approximation will run for
+    step_size: .001, // The step size that the approximation will use
+    time_length: 1000000, // The time length the approximation will run for
     points: 1000,
-    outputFile: 'output.csv'
+    output_file: 'output.csv'
 }

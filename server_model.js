@@ -17,7 +17,7 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
     if (forward.length != 3 || backward.length != 3) throw new Error("Incorrect number of rates")
 
     // Check if metaparameters are valid
-    let { step_size, time_length, points, outputFile } = metaparameters;
+    let { step_size, time_length, points, output_file } = metaparameters;
     if (step_size <= 0) throw new Error("Step size must be a positive number");
     if (time_length < step_size) throw new Error("Time length must be longer than step size");
 
@@ -139,7 +139,7 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
     let pointCounter = 0;
     // Generate data
     let step = 0;
-    await fs.writeFile(outputFile, [step, ...conditions]);
+    await fs.writeFile(output_file, [step, ...conditions]);
     while (step < time_length) {
         diffEqs();
         if (conditions[0] == next[0] && conditions[1] == next[1]) break;
@@ -157,12 +157,12 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
         }
         pointCounter++;
         if (pointCounter > time_length / points / step_size) { // add point to array
-            await fs.appendFile(outputFile, '\n' + [step, ...conditions]);
+            await fs.appendFile(output_file, '\n' + [step, ...conditions]);
             pointCounter = 0;
         }
         step += step_size;
     }
-    await fs.appendFile(outputFile, '\n' + [step, ...conditions]); // add final concentrations
+    await fs.appendFile(output_file, '\n' + [step, ...conditions]); // add final concentrations
     rdl.moveCursor(process.stdout, -21, 1); // Move cursor to next line
     process.stdout.write("\x1B[?25h")
     return;
@@ -174,7 +174,7 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
 //         step_size: input.stepSize,
 //         time_length: input.timeLength,
 //         points: input.points,
-//         outputFile: input.outputFile
+//         output_file: input.output_file
 //     }
 // );
 

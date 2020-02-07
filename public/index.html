@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="firefox">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="./index.css">
+    <title>Aggregation Kinetics Model</title>
+</head>
+<body>
+    <header>
+        <h1>Aggregation Kinetics Model</h1>
+    </header>
+    <div id="app">
+        <form>
+            <h2>Initial Conditions</h2>
+            <div class="form-group">
+                <label for="inactivatedMonomer">Inactivated monomer concentration</label>
+                <input type="text" class="form-control" id="iM" placeholder="eg: 1.0" v-model="iM">
+            </div>
+            <div class="form-group">
+                <label for="activatedMonomer">Activated monomer concentration</label>
+                <input type="text" class="form-control" id="aM" placeholder="eg: 1.0" v-model="aM">
+            </div>
+            <div class="form-group">
+                <label for="aggregate1">1st aggregate concentration</label>
+                <input type="text" class="form-control" id="A1" placeholder="eg: 1.0" v-model="A1">
+            </div>
+            <div class="form-group">
+                <label for="aggregate2">2nd aggregate concentrations</label>
+                <input type="text" class="form-control" id="A2" placeholder="eg: 1.0" v-model="A2">
+            </div>
+            <h2>Model Assumptions</h2>
+            <div class="form-group">
+                <label for="nMonomers">Number of monomers involved in nucleation</label>
+                <input type="number" class="form-control" id="n" placeholder="eg: 3" v-model="n">
+            </div>
+            <div class="form-group">
+                <label for="rMonomers">Exponent on monomers in nucleation rate law</label>
+                <input type="text" class="form-control" id="nm" placeholder="eg: 1.0" v-model="nm">
+            </div>
+            <h3>Forward Rates</h3>
+            <div class="form-group">
+                <label for="activation">Activation</label>
+                <input type="text" class="form-control" id="f1" placeholder="eg: 1.0" v-model="f1">
+            </div>
+            <div class="form-group">
+                <label for="nucleation">Nucleation</label>
+                <input type="text" class="form-control" id="f2" placeholder="eg: 1.0" v-model="f2">
+            </div>
+            <div class="form-group">
+                <label for="elongation">Elongation</label>
+                <input type="text" class="form-control" id="f3" placeholder="eg: 1.0" v-model="f3">
+            </div>
+            <h3>Backward Rates</h3>
+            <div class="form-group">
+                <label for="activation">Activation</label>
+                <input type="text" class="form-control" id="b1" placeholder="eg: 1.0" v-model="b1">
+            </div>
+            <div class="form-group">
+                <label for="nucleation">Nucleation</label>
+                <input type="text" class="form-control" id="b2" placeholder="eg: 1.0" v-model="b2">
+            </div>
+            <div class="form-group">
+                <label for="elongation">Elongation</label>
+                <input type="text" class="form-control" id="b3" placeholder="eg: 1.0" v-model="b3">
+            </div>
+            <h2>Metaparameters</h2>
+            <div class="form-group">
+                <label for="outputFile">Output filename</label>
+                <input type="text" class="form-control" id="output_file" placeholder="eg: output.csv" v-model="output_file">
+            </div>
+            <div class="form-group">
+                <label for="stepSize">Step size</label>
+                <input type="text" class="form-control" id="step_size" aria-describedby="stepSizeHelp" placeholder="eg: .001" v-model="step_size">
+                <small id="stepSizeHelp" class="form-text text-muted">Make sure the step size is not too large in comparison with your rates (could cause model to break down)</small>
+            </div>
+            <div class="form-group">
+                <label for="timeLength">Time length</label>
+                <input type="number" class="form-control" id="time_length" placeholder="eg: 100" v-model="time_length">
+            </div>
+            <div class="form-group">
+                <label for="points">Number of points to record</label>
+                <input type="number" class="form-control" id="points" placeholder="eg: 100" v-model="points">
+            </div>
+            <button type="submit" v-on:click.prevent="requestModel" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+</body>
+</html>
