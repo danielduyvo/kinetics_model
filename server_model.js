@@ -9,7 +9,7 @@ const rdl = require("readline") // for making the progress bar
  * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
  * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
  * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
- * @param {Object} metaparameters is an object with keys step_size and time_length, which are in milliseconds
+ * @param {Object} metaparameters is an object with keys step_size, time_length, points and output_file
  * @param {Integer} nm is the mechanism representing how many monomers are involved in the slow step of nucleation
  */
 const generateModeledConcentrations = async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
