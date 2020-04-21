@@ -4,6 +4,7 @@
   "description": "A ODE model for aggregation of beta-amyloid.",
   "main": "index.js",
   "scripts": {
+    "generate": "node generate_points.js",
     "serve": "node server.js",
     "start": "node -e 'require(\"./server_model.js\").local()'",
     "test": "node -e 'require(\"./server_model.js\").test()'"
