@@ -142,7 +142,6 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
     await fs.writeFile(output_file, [step, ...conditions]);
     while (step < time_length) {
         diffEqs();
-        if (conditions[0] == next[0] && conditions[1] == next[1]) break;
         for (let i = 0; i < next.length; i++) {
             conditions[i] = next[i];
         }
