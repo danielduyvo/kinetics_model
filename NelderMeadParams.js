@@ -4,7 +4,7 @@ module.exports = {
             .1, 0, 0, 0
         ],
         step_size: .001, // The step size that the approximation will use
-        time_length: 100, // The time length the approximation will run for
+        time_length: 60, // The time length the approximation will run for
         points: 100,
     },
     param_arr: [
