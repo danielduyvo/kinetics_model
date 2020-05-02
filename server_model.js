@@ -184,7 +184,6 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
     data.push([step, ...conditions]); // add final concentrations
     rdl.moveCursor(process.stdout, -21, 1); // Move cursor to next line
     process.stdout.write("\x1B[?25h");
-    let returned_data = JSON.parse(JSON.stringify(data));
     return returned_data;
 }
 
@@ -274,7 +273,7 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
     let next = [];
 
     const diffEqs = await generateDiffEquations(n, forward, backward, metaparameters, nm = n);
-    const calcMass = (conditions) => {
+    const calcMass = async (conditions) => {
         let sum = 0;
         for (let i = 2; i < conditions.length; i++) {
             sum += conditions[i];
@@ -313,7 +312,7 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
         }
         pointCounter++;
         if (pointCounter > time_length / points / step_size) { // add point to array
-            mass = calcMass(conditions);
+            mass = await calcMass(conditions);
             await fs.appendFile(output_file, '\n' + [step, mass]);
             pointCounter = 0;
         }

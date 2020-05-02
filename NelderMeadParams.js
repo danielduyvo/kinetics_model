@@ -1,11 +1,11 @@
 module.exports = {
     constants: {
         initialConditions: [ // Initial concentrations go here, starting with monomers, and then aggregates in increasing mass order
-            .1, 0, 0, 0
+            .000120, 0, 0, 0
         ],
         step_size: .001, // The step size that the approximation will use
-        time_length: 60, // The time length the approximation will run for
-        points: 100,
+        time_length: 170000, // The time length the approximation will run for
+        points: 10000,
     },
     param_arr: [
         {

@@ -129,7 +129,7 @@ const generateDiffEquations = async (n, forward, backward, metaparameters, nm = 
  * @param {Integer} nm is the mechanism representing how many monomers are involved in the slow step of nucleation
  */
 const generateModeledMass = async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
-    let { step_size, time_length, points, output_file } = metaparameters;
+    let { step_size, time_length, points } = metaparameters;
 
     // Setup conditions array
     let conditions = [];
@@ -176,6 +176,7 @@ const generateModeledMass = async (initialConditions, n, forward, backward, meta
     }
     mass = calcMass(conditions);
     data.push([step, mass]); // add final concentrations
+    console.log("Mass modeled");
     return data;
 }
 
@@ -231,10 +232,11 @@ const calculateAggregateMass = async (data) => {
     return mass;
 }
 
-const normalizeData = async (data) => {
-    let last_fluor = data[data.length - 1][1];
+const normalizeData = async (data, time) => {
+    let modeled_indices = await binarySearch(data, time);
+    let modeled_value = (data[modeled_indices[0]][1] + data[modeled_indices[1]][1]) / 2;
     for (let i = 0; i < data.length; i++) {
-        data[1] = data[1] / last_fluor;
+        data[i][1] = data[i][1] / modeled_value;
     }
     return data;
 }
@@ -283,7 +285,7 @@ const multScalar = (scalar, a) => {
 
 const calcDataError = async (params, constants, real_data) => {
     let error = 0;
-    if (isPositive(params)) {
+    if (await isPositive(params)) {
         let data = await generateModeledMass(
             constants.initialConditions,
             params.n,
@@ -295,6 +297,7 @@ const calcDataError = async (params, constants, real_data) => {
                 points: constants.points,
             }
         );
+        data = await normalizeData(data, real_data[real_data.length - 1][0]);
         error = await MSE(real_data, data);
     } else {
         error = Infinity;
@@ -304,6 +307,7 @@ const calcDataError = async (params, constants, real_data) => {
 }
 
 const Nelder_Mead = async (real_data, param_arr, constants) => {
+    real_data = await normalizeData(real_data, real_data[real_data.length - 1][0]);
     let guesses = [];
     for (let i = 0; i < param_arr.length; i++) {
         let params = param_arr[i];
@@ -332,7 +336,7 @@ const Nelder_Mead = async (real_data, param_arr, constants) => {
     console.log("Params have been read and their masses and errors calculated");
     for (let i = 0; i < 100; i++) {
         guesses.sort((a,b) => a[1] - b[1]); // Sort in ascending order
-        ("Ordered guesses", guesses);
+        console.log("Ordered guesses", guesses);
         // Find the centroid
         let centroid = {
             n: 0,
@@ -418,7 +422,11 @@ const Nelder_Mead = async (real_data, param_arr, constants) => {
 
 const runNelderMead = async (real_file, param_arr, constants) => {
     let real_data = await fs.readFile(__dirname + '/' + real_file);
-    real_data = real_data.toString('utf8').split('\n');
+    real_data = real_data.toString('utf8');
+    real_data = real_data.split('\n');
+    if (real_data[real_data.length - 1] == "") {
+        real_data.pop();
+    }
     for (let i = 0; i < real_data.length; i++) {
         let temp = real_data[i].split(',');
         real_data[i] = [parseInt(temp[0]), parseInt(temp[1])];
