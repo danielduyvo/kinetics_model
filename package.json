@@ -4,11 +4,9 @@
   "description": "A ODE model for aggregation of beta-amyloid.",
   "main": "index.js",
   "scripts": {
-    "generate": "node generate_points.js",
     "model_mass": "node -e 'require(\"./server_model.js\").local_aggregate_mass()'",
     "serve": "node server.js",
-    "start": "node -e 'require(\"./server_model.js\").local_concentration()'",
-    "test": "node -e 'require(\"./server_model.js\").test()'"
+    "start": "node -e 'require(\"./server_model.js\").local_concentration()'"
   },
   "author": "Daniel Vo",
   "license": "ISC",

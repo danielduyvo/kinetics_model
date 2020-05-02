@@ -188,6 +188,83 @@ const generateModeledConcentrations = async (initialConditions, n, forward, back
 }
 
 /**
+ * Takes in parameters and generates modeled data of concentrations during an aggregation
+ * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
+ * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
+ * @param {Array} forward is an array of rate constants, ordered in increasing order of the products
+ * @param {Array} backward is an array of rate constants, ordered in increasing order of the products
+ * @param {Object} metaparameters is an object with keys step_size, time_length, points and output_file
+ * @param {Integer} nm is the mechanism representing how many monomers are involved in the slow step of nucleation
+ */
+const generateModeledMass = async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
+    let { step_size, time_length, points } = metaparameters;
+
+    // Setup conditions array
+    let conditions = [];
+    for (let i = 0; i < initialConditions.length; i++) {
+        conditions[i] = initialConditions[i];
+    }
+
+    // Setup results array
+    let next = [];
+
+    const diffEqs = await generateDiffEquations(n, forward, backward, metaparameters, nm = n);
+    const calcMass = (conditions) => {
+        let mass = 0;
+        for (let i = 2; i < conditions.length; i++) {
+            mass += conditions[i];
+        }
+        return mass;
+    }
+
+    // Progress bar
+    process.stdout.write("\x1B[?25l"); // erase cursor
+    process.stdout.write("[");;
+    for (let i = 0; i < 20; i++) {
+        process.stdout.write("-");
+    }
+    process.stdout.write("]");
+    rdl.moveCursor(process.stdout, -21, 0); // move cursor to beginning of bar
+    let progressCounter = 0;
+    // Picking out the intermediate points
+    let pointCounter = 0;
+    // Generate data
+    let step = 0;
+    let mass = 0;
+    // Initiate data array
+    mass = calcMass(conditions);
+    let data = [[step, mass]];
+
+    while (step < time_length) {
+        next = diffEqs(conditions);
+        for (let i = 0; i < next.length; i++) {
+            conditions[i] = next[i];
+        }
+        while (true) {
+            if (conditions[conditions.length - 1] == 0 && conditions.length > 4) conditions.pop();
+            else break;
+        }
+        progressCounter++;
+        if (progressCounter > (time_length / 20 / step_size)) { // update progress bar
+            process.stdout.write("=");
+            progressCounter = 1;
+        }
+        pointCounter++;
+        if (pointCounter > time_length / points / step_size) { // add point to array
+            mass = calcMass(conditions);
+            data.push([step, mass]);
+            pointCounter = 0;
+        }
+        step += step_size;
+    }
+    mass = calcMass(conditions);
+    data.push([step, mass]); // add final concentrations
+    rdl.moveCursor(process.stdout, -21, 1); // Move cursor to next line
+    process.stdout.write("\x1B[?25h");
+    return data;
+}
+
+/**
  * Takes in parameters and prints out modeled data of concentrations during an aggregation
  * @param {Array} initialConditions is an array of initial concentrations for the monomers and the aggregates, starting from the monomer and the aggregates in increasing mass order
  * @param {Integer} n is the coefficient of the monomers in the first aggregation mechanism
@@ -294,8 +371,8 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
     let pointCounter = 0;
     // Generate data
     let step = 0;
-    let mass = calcMass(conditions);
-    await fs.writeFile(output_file, [step, conditions]);
+    let mass = await calcMass(conditions);
+    await fs.writeFile(output_file, [step, mass]);
     while (step < time_length) {
         next = diffEqs(conditions);
         for (let i = 0; i < next.length; i++) {
@@ -318,7 +395,7 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
         }
         step += step_size;
     }
-    mass = calcMass(conditions);
+    mass = await calcMass(conditions);
     await fs.appendFile(output_file, '\n' + [step, mass]); // add final concentrations
     rdl.moveCursor(process.stdout, -21, 1); // Move cursor to next line
     process.stdout.write("\x1B[?25h")
@@ -326,12 +403,12 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
 }
 
 module.exports = {
-    test: () => {
-        console.log('test successful');
-    },
     generate: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
         await printModeledConcentrations(initialConditions, n, forward, backward, metaparameters, nm = n);
         return;
+    },
+    generate_modeled_mass: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
+        return generateModeledMass(initialConditions, n, forward, backward, metaparameters, nm = n);
     },
     local_concentration: async () => {
         // Generate model from local parameters
@@ -347,8 +424,7 @@ module.exports = {
         return;
     },
     generateData: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
-        await generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters, nm = n);
-        return;
+        return generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters, nm = n);
     },
     local_aggregate_mass: async () => {
         // Generate model from local parameters

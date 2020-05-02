@@ -47,7 +47,7 @@ module.exports = {
         {
             n: 6, // Number of monomers it takes to make the first aggregate
             forwardRates: [ // The forward rates for the reactions, starting the the monomer activation
-                .005, 1.6, 1400 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
+                .00004, 1.6, 3000 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
             ],
             backwardRates: [ // The backward rates for the reactions
                 0.0001, 0.0001, 100 // 1.01e-3 and 3.02e2 from Ghosh
@@ -56,7 +56,7 @@ module.exports = {
         {
             n: 2, // Number of monomers it takes to make the first aggregate
             forwardRates: [ // The forward rates for the reactions, starting the the monomer activation
-                .5, 1.7, 1300 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
+                .0005, 1.7, 1300 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
             ],
             backwardRates: [ // The backward rates for the reactions
                 0.00001, 0.01, 300 // 1.01e-3 and 3.02e2 from Ghosh
@@ -65,7 +65,7 @@ module.exports = {
         {
             n: 4, // Number of monomers it takes to make the first aggregate
             forwardRates: [ // The forward rates for the reactions, starting the the monomer activation
-                .5, 1.8, 1200 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
+                .0005, 1.8, 1200 // kn = 1.38 from Ghosh, ke = 1.2e3 from Rodriguez, 9.3e5 from Young, 1.37e4 from Ghosh
             ],
             backwardRates: [ // The backward rates for the reactions
                 0.01, 0.001, 200 // 1.01e-3 and 3.02e2 from Ghosh
