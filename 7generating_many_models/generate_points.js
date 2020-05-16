@@ -24,7 +24,7 @@ const generatePoints = async () => {
                                     (params.start.backwardRates[1] + params.change.backwardRates[1] * n) + '_' +
                                     (params.start.backwardRates[2] + params.change.backwardRates[2] * o);
                                 console.log('current model running: ', file_name, '\n');
-                                await model.generate(
+                                await model.print_concentration(
                                     params.initialConditions,
                                     params.start.n + params.change.n * i,
                                     [

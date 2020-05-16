@@ -403,7 +403,7 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
 }
 
 module.exports = {
-    generate: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
+    print_concentration: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
         await printModeledConcentrations(initialConditions, n, forward, backward, metaparameters, nm = n);
         return;
     },
@@ -423,7 +423,7 @@ module.exports = {
         );
         return;
     },
-    generateData: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
+    generate_concentration: async (initialConditions, n, forward, backward, metaparameters, nm = n) => {
         return generateModeledConcentrations(initialConditions, n, forward, backward, metaparameters, nm = n);
     },
     local_aggregate_mass: async () => {

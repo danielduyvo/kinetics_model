@@ -21,7 +21,7 @@ app.get('/test', (req, res) => {
 
 app.post('/model', async (req, res) => {
     console.log(JSON.stringify(req.body));
-    await model.generate(req.body.initialConditions, req.body.n, req.body.forwardRates, req.body.backwardRates, req.body.metaparameters, req.body.nm);
+    await model.print_concentration(req.body.initialConditions, req.body.n, req.body.forwardRates, req.body.backwardRates, req.body.metaparameters, req.body.nm);
     return res.download(__dirname + '/' + req.body.metaparameters.output_file);
     // Test request:
     // curl --header "Content-Type: application/json" --request POST --data "{\"initialConditions\":[0.1,0,0,0],\"n\":6,\"forwardRates\":[0.001,1.38,1200],\"backwardRates\":[0.0001,0.00101,302],\"metaparameters\":{\"output_file\":\"output.csv\",\"points\":100,\"step_size\":0.001,\"time_length\":100},\"nm\":2}" localhost:5000/model
