@@ -108,6 +108,8 @@ const generateDiffEquations = async (n, forward, backward, metaparameters, nm = 
         diff += k_e * a_m * A_jm;
         // Aggregate concentration decreases with the delongation rate, dependent on A_i concentration
         diff -= k_em * A_j;
+        // Aggregate concentration decreases with the elongation rate, dependent on M concentration and A_i concentration
+        diff -= k_e * a_m * A_j;
         next[conditions.length - 1] = A_j + diff * step_size;
         
         diff = 0;
