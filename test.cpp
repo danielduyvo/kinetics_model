@@ -7,9 +7,12 @@
 #include <sstream>
 #include <utility>
 #include <algorithm>
+#include <cstring>
+#include <chrono>
 
 static const int RATE_CONSTANTS = 3;
 static const unsigned int PROC_COUNT = std::thread::hardware_concurrency();
+static const int DEFAULT_POINTS = 1000;
 
 class Params {
     public:
@@ -216,18 +219,31 @@ class Masses {
             : times(), masses() {};
         Masses(std::vector<double> times, std::vector<double> masses)
             : times(times), masses(masses) {};
-        Masses(Conditions initial, Params params, double time_length, double step_size)
+        Masses(Conditions initial, Params params, double time_length, double step_size, int points = DEFAULT_POINTS)
             : times(), masses()
         {
-            int len = time_length / step_size + 2;
-            times.resize(len);
-            masses.resize(len);
-            masses[0] = initial.agg_mass();
-            times[0] = 0;
-            for (int pos = 1; pos < len; pos++) {
+            double push_next = time_length / points;
+            double display_steps = 100;
+            double display_next = 0;
+            std::cout << "Generating Mass" << std::endl;
+            double time = 0;
+            times.reserve(points);
+            masses.reserve(points);
+            masses.push_back(initial.agg_mass());
+            times.push_back(time);
+            for (double step = 0; step < time_length; step += step_size) {
                 initial = initial.next(params, step_size);
-                masses[pos] = initial.agg_mass();
-                times[pos] = times[pos - 1] + step_size;
+                time += step_size;
+                if (step > push_next) {
+                    masses.push_back(initial.agg_mass());
+                    times.push_back(time);
+                    push_next += time_length / points;
+                }
+                if (step > display_next) {
+                    std::cout << "\n" << "[" << std::string((int) display_steps * step / time_length, (char)254u) << std::string(display_steps - (int) (display_steps * step / time_length), ' ') << "]";
+                    std::cout.flush();
+                    display_next += time_length / display_steps;
+                }
             }
         };
         Masses(Concentrations& concentrations)
@@ -322,6 +338,8 @@ Params globalFit(std::vector<Masses> real_data, std::vector<Params> params_vec, 
                     params_vec[i], initials, real_data, step_size
                     )
                 );
+        guesses[i].first.print();
+        std::cout << guesses[i].second << std::endl;
     }
     for (int i = 0; i < 100; i++) {
         std::sort(guesses.begin(), guesses.end(),
@@ -439,18 +457,18 @@ int main(int argc, char *argv[]) {
         line_stream.clear();
     }
     conditions_file.close();
-    if (strcmp(argv[1],"gen") == 0) {
+    if (std::strcmp(argv[1],"gen") == 0) {
         for (int i = 0; i < params.size(); i++) {
-            if (strcmp(argv[4], "mass") == 0) {
+            if (std::strcmp(argv[4], "mass") == 0) {
                 Masses masses(conditions[i], params[i], std::atof(argv[7]), std::atof(argv[6]));
                 masses.print(std::to_string(i) + std::string(argv[5]));
-            } else if (strcmp(argv[4], "conc") == 0) {
+            } else if (std::strcmp(argv[4], "conc") == 0) {
                 Concentrations concentrations(conditions[i], params[i], std::atof(argv[7]), std::atof(argv[6]));
 				std::string output_file_name = std::to_string(i) + std::string(argv[5]);
                 concentrations.print(output_file_name);
             }
         }
-    } else if (strcmp(argv[1], "fit") == 0) {
+    } else if (std::strcmp(argv[1], "fit") == 0) {
         std::vector<Masses> real_data;
         std::fstream fit_file;
         fit_file.open(argv[4], std::ofstream::in);
@@ -461,10 +479,10 @@ int main(int argc, char *argv[]) {
         Params result = globalFit(real_data, params, conditions, std::atof(argv[6]));
         std::ofstream output;
         output.open(argv[5], std::ofstream::out | std::ofstream::trunc);
-        output << "n" << result.n << std::endl;
-        output << "r" << result.r << std::endl;
-        output << "forward" << result.forward[0] << ',' << result.forward[1] << ',' << result.forward[2] << std::endl;
-        output << "backward" << result.backward[0] << ',' << result.backward[1] << ',' << result.backward[2] << std::endl;
+        output << "n:" << result.n << std::endl;
+        output << "r:" << result.r << std::endl;
+        output << "forward:" << result.forward[0] << ',' << result.forward[1] << ',' << result.forward[2] << std::endl;
+        output << "backward:" << result.backward[0] << ',' << result.backward[1] << ',' << result.backward[2] << std::endl;
         output.close();
     }
 	std::cout << "Algorithm completed, hit ENTER to end" << std::endl;
