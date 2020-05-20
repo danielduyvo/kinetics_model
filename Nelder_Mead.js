@@ -264,7 +264,7 @@ const calcGlobalDataError = async (params, constants, real_data) => {
                 }
             );
             data = await normalizeData(data, real_data[i][real_data[i].length - 1][0]);
-            error = await MSE(real_data[i], data);
+            error += await MSE(real_data[i], data);
         } else {
             error = Infinity;
         }
