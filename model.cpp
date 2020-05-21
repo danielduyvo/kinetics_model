@@ -173,6 +173,54 @@ class Conditions {
         };
 };
 
+void become_next(Conditions& A, Conditions& B, Params& params, double step_size) {
+    int agg_size = A.agg.size();
+    B.agg.resize(A.agg.size() + 1);
+    double diff = 0; // calculating im
+    diff = -(A.im * params.forward[0]) + (A.am * params.backward[0]);
+    B.im = A.im + step_size * diff;
+
+    diff = 0; // calculating am
+    diff += A.im * params.forward[0];
+    diff -= A.am * params.backward[0];
+    diff -= params.n * std::pow(A.am, params.r) * params.forward[1];
+    diff += params.n * A.agg[0] * params.backward[1];
+    for (int i = 0; i < agg_size - 1; i++) {
+        diff -= A.am * A.agg[i] * params.forward[2];
+        diff += A.agg[i + 1] * params.backward[2];
+    }
+    diff -= A.am * A.agg[agg_size - 1] * params.forward[2];
+    B.am = A.am + step_size * diff;
+
+    diff = 0; // calculating first aggregate
+    diff += std::pow(A.am, params.r) * params.forward[1];
+    diff -= A.agg[0] * params.backward[1];
+    diff -= A.am * A.agg[0] * params.forward[2];
+    diff += A.agg[1] * params.backward[2];
+    B.agg[0] = A.agg[0] + step_size * diff;
+
+    for (int i = 1; i < agg_size - 1; i++) {
+        diff = 0; // calculating intermediate aggregates
+        diff += A.am * A.agg[i - 1] * params.forward[1];
+        diff -= A.agg[i] * params.backward[1];
+        diff -= A.am * A.agg[i] * params.forward[1];
+        diff += A.agg[i + 1] * params.backward[1];
+        B.agg[i] = A.agg[i] + step_size * diff;
+    }
+
+    diff = 0; // calculating last aggregate
+    diff += A.am * A.agg[agg_size - 2] * params.forward[1];
+    diff -= A.agg[agg_size - 1] * params.backward[1];
+    diff -= A.am * A.agg[agg_size - 1] * params.forward[1];
+    B.agg[agg_size - 1] = A.agg[agg_size - 1] + step_size * diff;
+
+    diff = 0; // calculating next aggregate
+    diff += A.am * A.agg[agg_size - 1] * params.forward[1];
+    B.agg[agg_size] = 0 + step_size * diff;
+
+    return;
+}
+
 class Concentrations {
     public:
         std::vector<double> times;
@@ -228,8 +276,13 @@ class Masses {
             masses.reserve(points);
             masses.push_back(initial.agg_mass());
             times.push_back(time);
+            Conditions next;
+			Conditions temp;
             for (double step = 0; step < time_length; step += step_size) {
-                initial = initial.next(params, step_size);
+                become_next(initial, next, params, step_size);
+				temp = std::move(initial);
+				initial = std::move(next);
+				next = std::move(temp);
                 time += step_size;
                 if (step > push_next) {
                     masses.push_back(initial.agg_mass());
