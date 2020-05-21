@@ -8,7 +8,6 @@
 #include <utility>
 #include <algorithm>
 #include <cstring>
-#include <chrono>
 
 static const int RATE_CONSTANTS = 3;
 static const unsigned int PROC_COUNT = std::thread::hardware_concurrency();
@@ -119,7 +118,7 @@ class Conditions {
         Conditions(const Conditions &orig)
             : im(orig.im), am(orig.am), agg(orig.agg) {};
         Conditions next(Params& params, double step_size) {
-			int agg_size = agg.size();
+            int agg_size = agg.size();
             Conditions next_con(agg_size + 1);
             double diff = 0; // calculating im
             diff = -(im * params.forward[0]) + (am * params.backward[0]);
@@ -172,9 +171,6 @@ class Conditions {
             }
             return mass;
         };
-        int agg_size() {
-            return agg.size();
-        };
 };
 
 class Concentrations {
@@ -203,10 +199,10 @@ class Concentrations {
             output.open(file_name, std::ofstream::out | std::ofstream::trunc);
             for (int i = 0; i < times.size(); i++) {
                 output << times[i] << ',' << conditions[i].im << ',' << conditions[i].am << ',';
-                for (int j = 0; j < conditions[i].agg_size() - 1; j++) {
+                for (int j = 0; j < conditions[i].agg.size() - 1; j++) {
                     output << conditions[i].agg[j] << ',';
                 }
-                output << conditions[i].agg[conditions[i].agg_size() - 1] << '\n';
+                output << conditions[i].agg[conditions[i].agg.size() - 1] << '\n';
             }
             output.close();
         };
@@ -252,7 +248,7 @@ class Masses {
         {
             masses.resize(concentrations.conditions.size());
             for (int i = 0; i < concentrations.conditions.size(); i++) {
-                masses[i] = concentrations.conditions[i].agg_size();
+                masses[i] = concentrations.conditions[i].agg.size();
             }
         };
         Masses(const Masses &orig)
