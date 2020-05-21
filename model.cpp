@@ -237,7 +237,7 @@ class Masses {
                     push_next += time_length / points;
                 }
                 if (step > display_next) {
-                    std::cout << "\n" << "[" << std::string((int) display_steps * step / time_length, (char)254u) << std::string(display_steps - (int) (display_steps * step / time_length), ' ') << "]";
+                    std::cout << "\r" << "[" << std::string((int) display_steps * step / time_length, (char)254u) << std::string(display_steps - (int) (display_steps * step / time_length), ' ') << "]";
                     std::cout.flush();
                     display_next += time_length / display_steps;
                 }
