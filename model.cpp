@@ -119,7 +119,8 @@ class Conditions {
         Conditions(const Conditions &orig)
             : im(orig.im), am(orig.am), agg(orig.agg) {};
         Conditions next(Params& params, double step_size) {
-            Conditions next_con(agg.size() + 1);
+			int agg_size = agg.size();
+            Conditions next_con(agg_size + 1);
             double diff = 0; // calculating im
             diff = -(im * params.forward[0]) + (am * params.backward[0]);
             next_con.im = im + step_size * diff;
@@ -129,11 +130,11 @@ class Conditions {
             diff -= am * params.backward[0];
             diff -= params.n * std::pow(am, params.r) * params.forward[1];
             diff += params.n * agg[0] * params.backward[1];
-            for (int i = 0; i < agg.size() - 1; i++) {
+            for (int i = 0; i < agg_size - 1; i++) {
                 diff -= am * agg[i] * params.forward[2];
                 diff += agg[i + 1] * params.backward[2];
             }
-            diff -= am * agg[agg.size() - 1] * params.forward[2];
+            diff -= am * agg[agg_size - 1] * params.forward[2];
             next_con.am = am + step_size * diff;
 
             diff = 0; // calculating first aggregate
@@ -143,7 +144,7 @@ class Conditions {
             diff += agg[1] * params.backward[2];
             next_con.agg[0] = agg[0] + step_size * diff;
 
-            for (int i = 1; i < agg.size() - 1; i++) {
+            for (int i = 1; i < agg_size - 1; i++) {
                 diff = 0; // calculating intermediate aggregates
                 diff += am * agg[i - 1] * params.forward[1];
                 diff -= agg[i] * params.backward[1];
@@ -153,14 +154,14 @@ class Conditions {
             }
 
             diff = 0; // calculating last aggregate
-            diff += am * agg[agg.size() - 2] * params.forward[1];
-            diff -= agg[agg.size() - 1] * params.backward[1];
-            diff -= am * agg[agg.size() - 1] * params.forward[1];
-            next_con.agg[agg.size() - 1] = agg[agg.size() - 1] + step_size * diff;
+            diff += am * agg[agg_size - 2] * params.forward[1];
+            diff -= agg[agg_size - 1] * params.backward[1];
+            diff -= am * agg[agg_size - 1] * params.forward[1];
+            next_con.agg[agg_size - 1] = agg[agg_size - 1] + step_size * diff;
 
             diff = 0; // calculating next aggregate
-            diff += am * agg[agg.size() - 1] * params.forward[1];
-            next_con.agg[agg.size()] = 0 + step_size * diff;
+            diff += am * agg[agg_size - 1] * params.forward[1];
+            next_con.agg[agg_size] = 0 + step_size * diff;
 
             return next_con;
         };
