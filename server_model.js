@@ -243,7 +243,9 @@ const generateModeledMass = async (initialConditions, n, forward, backward, meta
             conditions[i] = next[i];
         }
         while (true) {
-            if (conditions[conditions.length - 1] == 0 && conditions.length > 4) conditions.pop();
+            if (conditions[conditions.length - 1] == 0 && conditions.length > 4) {
+                conditions.pop();
+            }
             else break;
         }
         progressCounter++;

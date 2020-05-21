@@ -162,6 +162,8 @@ class Conditions {
             diff += am * agg[agg_size - 1] * params.forward[1];
             next_con.agg[agg_size] = 0 + step_size * diff;
 
+            while (agg.size() > 2 && agg[agg.size() - 1] == 0) agg.pop_back();
+
             return next_con;
         };
         double agg_mass(Params& params) {
@@ -217,6 +219,19 @@ void become_next(Conditions& A, Conditions& B, Params& params, double step_size)
     diff = 0; // calculating next aggregate
     diff += A.am * A.agg[agg_size - 1] * params.forward[1];
     B.agg[agg_size] = 0 + step_size * diff;
+
+    bool good = true;
+    for (int i = 0; i < B.agg.size(); i++) {
+        if (std::isnan(B.agg[i])) good = false;
+    }
+    if (!good) {
+        cin.get();
+    }
+
+    std::cout << "Last " << B.agg[B.agg.size() - 1] << std::endl;
+
+    while (B.agg.size() > 2 && (B.agg[B.agg.size() - 1] == 0 || std::isnan(B.agg[B.agg.size() - 1]))) B.agg.pop_back();
+    std::cout << B.agg.size() << std::endl;
 
     return;
 }
