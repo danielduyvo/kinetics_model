@@ -164,10 +164,10 @@ class Conditions {
 
             return next_con;
         };
-        double agg_mass() {
+        double agg_mass(Params& params) {
             double mass = 0;
             for (int i = 0; i < agg.size(); i++) {
-                mass += agg[i];
+                mass += agg[i] * (params.n + i);
             }
             return mass;
         };
@@ -274,7 +274,7 @@ class Masses {
             double time = 0;
             times.reserve(points);
             masses.reserve(points);
-            masses.push_back(initial.agg_mass());
+            masses.push_back(initial.agg_mass(params));
             times.push_back(time);
             Conditions next;
 			Conditions temp;
@@ -285,7 +285,7 @@ class Masses {
 				next = std::move(temp);
                 time += step_size;
                 if (step > push_next) {
-                    masses.push_back(initial.agg_mass());
+                    masses.push_back(initial.agg_mass(params));
                     times.push_back(time);
                     push_next += time_length / points;
                 }

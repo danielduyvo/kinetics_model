@@ -214,7 +214,7 @@ const generateModeledMass = async (initialConditions, n, forward, backward, meta
     const calcMass = (conditions) => {
         let mass = 0;
         for (let i = 2; i < conditions.length; i++) {
-            mass += conditions[i];
+            mass += conditions[i] * (n + i - 2);
         }
         return mass;
     }
@@ -355,7 +355,7 @@ const printModeledMass = async (initialConditions, n, forward, backward, metapar
     const calcMass = async (conditions) => {
         let sum = 0;
         for (let i = 2; i < conditions.length; i++) {
-            sum += conditions[i];
+            sum += conditions[i] * (n + i - 2);
         }
         return sum;
     }
