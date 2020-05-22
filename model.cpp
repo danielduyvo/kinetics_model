@@ -145,21 +145,21 @@ class Conditions {
 
             for (int i = 1; i < agg_size - 1; i++) {
                 diff = 0; // calculating intermediate aggregates
-                diff += am * agg[i - 1] * params.forward[1];
-                diff -= agg[i] * params.backward[1];
-                diff -= am * agg[i] * params.forward[1];
-                diff += agg[i + 1] * params.backward[1];
+                diff += am * agg[i - 1] * params.forward[2];
+                diff -= agg[i] * params.backward[2];
+                diff -= am * agg[i] * params.forward[2];
+                diff += agg[i + 1] * params.backward[2];
                 next_con.agg[i] = agg[i] + step_size * diff;
             }
 
             diff = 0; // calculating last aggregate
-            diff += am * agg[agg_size - 2] * params.forward[1];
-            diff -= agg[agg_size - 1] * params.backward[1];
-            diff -= am * agg[agg_size - 1] * params.forward[1];
-            next_con.agg[agg_size - 1] = agg[agg_size - 1] + step_size * diff;
+            diff += am * agg[agg_size - 2] * params.forward[2];
+            diff -= agg[agg_size - 1] * params.backward[2];
+            diff -= am * agg[agg_size - 1] * params.forward[2];
+            next_con.agg[agg_size - 1] = agg[agg_size - 2] + step_size * diff;
 
             diff = 0; // calculating next aggregate
-            diff += am * agg[agg_size - 1] * params.forward[1];
+            diff += am * agg[agg_size - 1] * params.forward[2];
             next_con.agg[agg_size] = 0 + step_size * diff;
 
             while (agg.size() > 2 && agg[agg.size() - 1] == 0) agg.pop_back();
@@ -178,59 +178,61 @@ class Conditions {
 void become_next(Conditions& A, Conditions& B, Params& params, double step_size) {
     int agg_size = A.agg.size();
     B.agg.resize(A.agg.size() + 1);
-    double diff = 0; // calculating im
-    diff = -(A.im * params.forward[0]) + (A.am * params.backward[0]);
+    double diff = 0;
+	double shared_diff = 0; // calculating im
+    shared_diff = -(A.im * params.forward[0]) + (A.am * params.backward[0]);
     B.im = A.im + step_size * diff;
 
-    diff = 0; // calculating am
-    diff += A.im * params.forward[0];
-    diff -= A.am * params.backward[0];
-    diff -= params.n * std::pow(A.am, params.r) * params.forward[1];
-    diff += params.n * A.agg[0] * params.backward[1];
+	// calculating am
+    diff = -shared_diff; // Any increase/decrease in im is mirrored in am
+	// That replaces next 2 lines
+    // diff += A.im * params.forward[0];
+    // diff -= A.am * params.backward[0];
+    shared_diff = - (params.n * std::pow(A.am, params.r) * params.forward[1]);
+    shared_diff += params.n * A.agg[0] * params.backward[1];
     for (int i = 0; i < agg_size - 1; i++) {
         diff -= A.am * A.agg[i] * params.forward[2];
         diff += A.agg[i + 1] * params.backward[2];
     }
     diff -= A.am * A.agg[agg_size - 1] * params.forward[2];
+	diff += shared_diff;
     B.am = A.am + step_size * diff;
 
-    diff = 0; // calculating first aggregate
-    diff += std::pow(A.am, params.r) * params.forward[1];
-    diff -= A.agg[0] * params.backward[1];
-    diff -= A.am * A.agg[0] * params.forward[2];
-    diff += A.agg[1] * params.backward[2];
+    diff = - shared_diff / params.n; // calculating first aggregate
+	// That replaces next two lines
+    // diff += std::pow(A.am, params.r) * params.forward[1];
+    // diff -= A.agg[0] * params.backward[1];
+	shared_diff = 0;
+    shared_diff -= A.am * A.agg[0] * params.forward[2];
+    shared_diff += A.agg[1] * params.backward[2];
+	diff += shared_diff;
     B.agg[0] = A.agg[0] + step_size * diff;
 
     for (int i = 1; i < agg_size - 1; i++) {
-        diff = 0; // calculating intermediate aggregates
-        diff += A.am * A.agg[i - 1] * params.forward[1];
-        diff -= A.agg[i] * params.backward[1];
-        diff -= A.am * A.agg[i] * params.forward[1];
-        diff += A.agg[i + 1] * params.backward[1];
+        diff = - shared_diff; // calculating intermediate aggregates
+        // diff += A.am * A.agg[i - 1] * params.forward[2];
+        // diff -= A.agg[i] * params.backward[2];
+		shared_diff = 0;
+        shared_diff -= A.am * A.agg[i] * params.forward[2];
+        shared_diff += A.agg[i + 1] * params.backward[2];
+		diff += shared_diff;
         B.agg[i] = A.agg[i] + step_size * diff;
     }
 
-    diff = 0; // calculating last aggregate
-    diff += A.am * A.agg[agg_size - 2] * params.forward[1];
-    diff -= A.agg[agg_size - 1] * params.backward[1];
-    diff -= A.am * A.agg[agg_size - 1] * params.forward[1];
+    diff = - shared_diff; // calculating last aggregate
+    // diff += A.am * A.agg[agg_size - 2] * params.forward[2];
+    // diff -= A.agg[agg_size - 1] * params.backward[2];
+	shared_diff = - A.am * A.agg[agg_size - 1] * params.forward[2];
+    diff += A.am * A.agg[agg_size - 1] * params.forward[2];
     B.agg[agg_size - 1] = A.agg[agg_size - 1] + step_size * diff;
 
-    diff = 0; // calculating next aggregate
-    diff += A.am * A.agg[agg_size - 1] * params.forward[1];
-    B.agg[agg_size] = 0 + step_size * diff;
-
-    bool good = true;
-    for (int i = 0; i < B.agg.size(); i++) {
-        if (std::isnan(B.agg[i])) good = false;
-    }
-    if (!good) {
-        cin.get();
-    }
+    diff = - shared_diff; // calculating next aggregate
+    // diff += A.am * A.agg[agg_size - 1] * params.forward[2];
+    B.agg[agg_size] = step_size * diff;
 
     std::cout << "Last " << B.agg[B.agg.size() - 1] << std::endl;
 
-    while (B.agg.size() > 2 && (B.agg[B.agg.size() - 1] == 0 || std::isnan(B.agg[B.agg.size() - 1]))) B.agg.pop_back();
+    while (B.agg.size() > 2 && B.agg[B.agg.size() - 1] == 0) B.agg.pop_back();
     std::cout << B.agg.size() << std::endl;
 
     return;
