@@ -1,3 +1,10 @@
+normalize = function(data) {
+    rows = nrow(data);
+    final = data[rows, 'V2'];
+    data$V2 = data$V2 / final;
+    return(data);
+}
+
 points = read.csv("output.csv", header=FALSE)
 x_s = points$V1
 png("iM.png")

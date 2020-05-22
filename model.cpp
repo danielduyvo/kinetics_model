@@ -230,10 +230,8 @@ void become_next(Conditions& A, Conditions& B, Params& params, double step_size)
     // diff += A.am * A.agg[agg_size - 1] * params.forward[2];
     B.agg[agg_size] = step_size * diff;
 
-    std::cout << "Last " << B.agg[B.agg.size() - 1] << std::endl;
 
     while (B.agg.size() > 2 && B.agg[B.agg.size() - 1] == 0) B.agg.pop_back();
-    std::cout << B.agg.size() << std::endl;
 
     return;
 }
