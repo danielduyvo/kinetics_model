@@ -10,6 +10,7 @@
 #include <cstring>
 
 static const int RATE_CONSTANTS = 3;
+static const int ARRAY_LIMIT = 200;
 static const unsigned int PROC_COUNT = std::thread::hardware_concurrency();
 static const int DEFAULT_POINTS = 1000;
 
@@ -162,7 +163,7 @@ class Conditions {
             diff += am * agg[agg_size - 1] * params.forward[2];
             next_con.agg[agg_size] = 0 + step_size * diff;
 
-            while (agg.size() > 2 && agg[agg.size() - 1] == 0) agg.pop_back();
+            while ( (agg.size() > 2 && agg[agg.size() - 1] == 0) || agg.size() > ARRAY_LIMIT ) agg.pop_back();
 
             return next_con;
         };
@@ -355,6 +356,8 @@ class Masses {
                     R = m - 1;
                 } else return masses[m];
             }
+            if (R >= times.size() || L >= times.size()) return masses[times.size() - 1];
+            if (L < 0 || R < 0) return masses[0];
             return (masses[R] + masses[L]) / 2;
         }
         void normalize(double time) {
@@ -369,9 +372,9 @@ double MSE(std::vector<Masses>& A, std::vector<Masses>& B) {
     int counter = 0;
     double error = 0;
     for (int i = 0; i < A.size(); i++) {
+        counter += A[i].times.size();
         for (int j = 0; j < A[i].times.size(); j++) {
             error += std::pow(B[i].get(A[i].times[j]) - A[i].masses[j], 2);
-            counter++;
         }
     }
     return error / counter;
@@ -478,7 +481,7 @@ Params globalFit(std::vector<Masses> real_data, std::vector<Params> params_vec, 
         }
         // Contractions are bad, shrink instead
         for (int j = 1; j < guesses.size(); j++) {
-            guesses[j].first = guesses[j].first + ( (guesses[j].first - guesses[0].first) * 0.5 );
+            guesses[j].first = guesses[0].first + ( (guesses[j].first - guesses[0].first) * 0.5 );
             guesses[j].second = calc_error(guesses[j].first, initials, real_data, step_size);
         }
     }
